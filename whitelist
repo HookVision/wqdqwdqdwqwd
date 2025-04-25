@@ -1,1 +1,52 @@
+local players = cloneref(game:GetService("Players"))
+local analytics = cloneref(game:GetService("RbxAnalyticsService"))
+local http = cloneref(game:GetService("HttpService"))
 
+local localPlayer = players.LocalPlayer
+local clientHWID = analytics:GetClientId()
+
+task.defer(function()
+    local isAllowed = false
+    local whitelist
+
+    local success, result = pcall(function()
+        local raw = game:HttpGet("https://raw.githubusercontent.com/HookVision/wqdqwdqdwqwd/refs/heads/main/list", true)
+        return loadstring(raw)()
+    end)
+
+    if success and typeof(result) == "table" then
+        whitelist = result
+        for _, hwid in ipairs(whitelist) do
+            if hwid == clientHWID then
+                isAllowed = true
+                break
+            end
+        end
+    end
+
+    if isAllowed then
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/HookVision/wqdqwdqdwqwd/refs/heads/main/main", true))()
+        end)
+    else
+        pcall(function()
+            local gui = Instance.new("ScreenGui")
+            gui.ResetOnSpawn = false
+            gui.IgnoreGuiInset = true
+            gui.Name = "WhitelistLock"
+            gui.Parent = gethui
+
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.new(1, 0, 1, 0)
+            label.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            label.TextColor3 = Color3.fromRGB(255, 85, 85)
+            label.Font = Enum.Font.SourceSansBold
+            label.TextScaled = true
+            label.Text = "[WHITELIST] Access Denied\nYour HWID:\n" .. clientHWID
+            label.Parent = gui
+
+            task.wait(7)
+            localPlayer:Kick("Whitelist check failed.")
+        end)
+    end
+end)
