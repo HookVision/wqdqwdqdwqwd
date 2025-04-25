@@ -1,1 +1,25 @@
+return function(passedHWID)
+    local analytics = cloneref(game:GetService("RbxAnalyticsService"))
+    local clientHWID = analytics:GetClientId()
 
+    -- Ověření že opravdu byl předán správný HWID
+    if passedHWID ~= clientHWID then
+        return cloneref(game:GetService"Players")["LocalPlayer"]:Kick("[SECURITY] HWID mismatch detected.")
+    end
+
+    -- ⚠️ Další kontrola whitelistu (nezávislá)
+    local whitelistCheck = false
+    local whitelist = {}
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/HookVision/WhitelistedHWID/refs/heads/main/Whitelist", true))()
+    end)
+    if success and typeof(result) == "table" then
+        whitelist = result
+        if table.find(whitelist, clientHWID) then            whitelistCheck = true
+        end
+    end
+
+    if not whitelistCheck then
+        return warn("[SECURITY] Second whitelist check failed.")
+    end
+end
